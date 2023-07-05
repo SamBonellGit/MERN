@@ -1,0 +1,15 @@
+import express from "express";
+const app = express();
+const port = 5000;
+
+
+// sets a root to "/" and responds with "hello world" when called 
+
+app.get("/", (req, res) => {
+  res.send("Hello, World!");
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
+ 
