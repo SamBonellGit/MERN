@@ -1,20 +1,20 @@
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
-import NoteModel from "./models/note";
-
+import notesRoutes from "./routes/notes";
+import morgan from "morgan";
 const app = express();
 
+// Setup of Morgan Middleware, this is used for logging purposes
+app.use(morgan("dev"));
+
+// Setups express so it accepts json bodies, middleware
+app.use(express.json());
+
+
+app.use("/api/notes", notesRoutes)
 // Async because we don't want to wait for the database to be ready
 
-app.get("/", async (req, res, next) => {
-  try {
-    // throw Error("UNKNWON ERROR); - Used for error testing
-    const notes = await NoteModel.find().exec(); // executes find operation, and then exec returns a promise
-    res.status(200).json(notes); // sets response status to 200 and returns the notes (response status basically means success), sends in json format.
-  } catch (error) {
-    next(error);
-  }
-});
+
 
 app.use((req, res, next) => {
   next(Error("Endpoint Not Found"));

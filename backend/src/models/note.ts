@@ -9,6 +9,6 @@ const noteSchema = new Schema(
 );
 
 
-type Note = InferSchemaType<typeof noteSchema>; // Added for typescript compatibility
+type Note = InferSchemaType<typeof noteSchema>; // Added for typescript compatibility (created type)
 
 export default model<Note>("Note", noteSchema);
