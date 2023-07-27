@@ -1,15 +1,19 @@
 import styles from "../styles/Note.module.css"
+import styleUtils from "../styles/utils.module.css"
+
 import { Card } from 'react-bootstrap';
 import { Note as NoteModel } from "../models/note" // as NoteModel is an alias. It's still note, but the name is changed to a more clear alias to avoid confusions and collisions. 
 import { formatDate } from "../utils/formatDate";
+import { MdDelete } from "react-icons/md";
 
 
 interface NoteProps {
     note: NoteModel,
+    onDeleteNoteClicked: (note: NoteModel) => void,
     className?: string,
 }
 
-const Note = ({ note, className } : NoteProps) => {
+const Note = ({ note, onDeleteNoteClicked, className,  } : NoteProps) => {
     const {
          title,
          text,
@@ -30,8 +34,13 @@ const Note = ({ note, className } : NoteProps) => {
     return (
         <Card className={`${styles.noteCard} ${className}`}>
             <Card.Body className={styles.cardBody}>
-                <Card.Title className={styles.cardTitle}>
+                <Card.Title className={`${styles.cardTitle} ${styleUtils.flexCenter}`}>
                     {title}
+                    <MdDelete className =  "ms-auto text-white"
+                    onClick={(e)=> {
+                        onDeleteNoteClicked(note);
+                        e.stopPropagation();
+                    }}/>
                 </Card.Title>
                 <Card.Text className={styles.cardText}>
                     {text}
