@@ -2,11 +2,17 @@ import { RequestHandler } from "express";
 import NoteModel from "../models/note";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
+import { assertIsDefined } from "../util/assertIsDefined";
 
 export const getNotes: RequestHandler = async (req, res, next) => {
+
+  const authenticatedUserId = req.session.userId;
   try {
+    assertIsDefined(authenticatedUserId);
+
+    authenticatedUserId
     //  throw createHttpError(401); testing purposes
-    const notes = await NoteModel.find().exec(); // executes find operation, and then exec returns a promise
+    const notes = await NoteModel.find({userId: authenticatedUserId}).exec(); // executes find operation, and then exec returns a promise
     res.status(200).json(notes); // sets response status to 200 and returns the notes (response status basically means success), sends in json format.
   } catch (error) {
     next(error);
@@ -16,8 +22,13 @@ export const getNotes: RequestHandler = async (req, res, next) => {
 
 export const getNote: RequestHandler = async (req, res, next) => {
   const noteId = req.params.noteId;
+  const authenticatedUserId = req.session.userId;
+
   
   try {
+    assertIsDefined(authenticatedUserId);
+
+
     if (!mongoose.isValidObjectId(noteId)) {
       throw createHttpError(400, "Invalid Note Id");
     }
@@ -27,6 +38,10 @@ export const getNote: RequestHandler = async (req, res, next) => {
 // if endpoint is correct but note not found
     if (!note) {
       throw createHttpError(404, "Note not found");
+    }
+
+    if (!note.userId.equals(authenticatedUserId)) {
+      throw createHttpError(401, "You don't have permission to access this note");
     }
     res.status(200).json(note); // sets response status to 200 and returns
   } catch (error) {
@@ -46,13 +61,18 @@ interface createNoteBody {
 export const createNote: RequestHandler<unknown, unknown, createNoteBody, unknown> = async (req, res, next) => {
   const title = req.body.title;
   const text = req.body.text;
+  const authenticatedUserId = req.session.userId;
+
 
   try {
+    assertIsDefined(authenticatedUserId);
+
     if(!title) {
       throw createHttpError(400, "Note must have a title");
     }
 
     const newNote = await NoteModel.create({
+      userId: authenticatedUserId,
       title: title,
       text: text,
     });
@@ -81,7 +101,11 @@ export const updateNote: RequestHandler<UpdateNoteParams, unknown, UpdateNoteBod
   const noteId = req.params.noteId; 
   const newTitle = req.body.title;
   const newText = req.body.text;
+  const authenticatedUserId = req.session.userId;
+
   try {
+    assertIsDefined(authenticatedUserId);
+
      if (!mongoose.isValidObjectId(noteId)) {
       throw createHttpError(400, "Invalid Note Id");
     }
@@ -95,6 +119,10 @@ export const updateNote: RequestHandler<UpdateNoteParams, unknown, UpdateNoteBod
 
     if (!note) {
       throw createHttpError(404, "Note not found");
+    }
+
+    if (!note.userId.equals(authenticatedUserId)) {
+      throw createHttpError(401, "You don't have permission to access this note");
     }
     
    note.title = newTitle;
@@ -113,8 +141,12 @@ export const updateNote: RequestHandler<UpdateNoteParams, unknown, UpdateNoteBod
 
 export const deleteNote: RequestHandler = async (req, res, next) => {
   const noteId = req.params.noteId;
+  const authenticatedUserId = req.session.userId;
+
 
   try {
+    assertIsDefined(authenticatedUserId);
+
     if (!mongoose.isValidObjectId(noteId)) {
       throw createHttpError(400, "Invalid Note Id");
     }
@@ -124,6 +156,9 @@ export const deleteNote: RequestHandler = async (req, res, next) => {
     if (!note) {
       throw createHttpError(404, "Note not found");
 
+    }
+    if (!note.userId.equals(authenticatedUserId)) {
+      throw createHttpError(401, "You don't have permission to access this note");
     }
     
     await note.deleteOne();

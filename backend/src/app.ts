@@ -8,6 +8,7 @@ const app = express();
 import session from "express-session";
 import env from "./util/validateEnv"; 
 import MongoStore from "connect-mongo";
+import { requiresAuth } from "./middleware/auth";
 
 // Setup of Morgan Middleware, this is used for logging purposes (Adds enhanced logging functionality)
 app.use(morgan("dev"));
@@ -34,7 +35,7 @@ app.use(session({
 app.use("/api/users", userRoutes);
 
 
-app.use("/api/notes", notesRoutes)
+app.use("/api/notes", requiresAuth, notesRoutes)
 // Async because we don't want to wait for the database to be ready
 
 
